@@ -4,9 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Own or Rent — Home Decision Simulator</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
@@ -34,7 +31,7 @@
   html { font-size: 16px; }
 
   body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
     background: var(--parchment);
     color: var(--ink);
     min-height: 100vh;
@@ -72,7 +69,7 @@
   .header-left {}
 
   .header-eyebrow {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -81,7 +78,7 @@
   }
 
   .header-title {
-    font-family: 'Playfair Display', serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: clamp(32px, 5vw, 52px);
     font-weight: 700;
     line-height: 1.05;
@@ -104,7 +101,7 @@
   .header-badge {
     background: var(--ink);
     color: var(--parchment);
-    font-family: 'DM Mono', monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 10px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -116,7 +113,7 @@
 
   /* SECTION LABEL */
   .section-label {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -180,7 +177,7 @@
   }
 
   .currency-prefix {
-    font-family: 'Playfair Display', serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: 20px;
     color: var(--ink-muted);
     line-height: 1;
@@ -193,7 +190,7 @@
   }
 
   .num-input {
-    font-family: 'Playfair Display', serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: 22px;
     font-weight: 600;
     color: var(--ink);
@@ -208,7 +205,7 @@
   .num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 
   .pct-suffix {
-    font-family: 'Playfair Display', serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: 20px;
     color: var(--ink-muted);
     flex-shrink: 0;
@@ -246,7 +243,7 @@
   }
 
   .run-btn {
-    font-family: 'DM Sans', sans-serif;
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
     font-size: 13px;
     font-weight: 500;
     letter-spacing: 0.08em;
@@ -322,7 +319,7 @@
 
   .verdict-text {}
   .verdict-headline {
-    font-family: 'Playfair Display', serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: 22px;
     font-weight: 700;
     margin-bottom: 6px;
@@ -353,7 +350,7 @@
   }
 
   .stat-label {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 9px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -362,7 +359,7 @@
   }
 
   .stat-value {
-    font-family: 'Playfair Display', serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: 36px;
     font-weight: 700;
     color: var(--ink);
@@ -389,7 +386,7 @@
   }
 
   .chart-title {
-    font-family: 'Playfair Display', serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 4px;
@@ -435,7 +432,7 @@
     transform: translateX(-50%);
     background: var(--ink);
     color: var(--parchment);
-    font-family: 'DM Mono', monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 9px;
     padding: 4px 8px;
     border-radius: 2px;
@@ -451,7 +448,7 @@
   }
 
   .hist-axis-label {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 9px;
     color: var(--ink-muted);
   }
@@ -471,7 +468,7 @@
   }
 
   .breakdown-title {
-    font-family: 'Playfair Display', serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: 16px;
     font-weight: 600;
   }
@@ -488,7 +485,7 @@
   }
 
   .breakdown-table th {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 9px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -510,7 +507,7 @@
 
   .breakdown-table td:not(:first-child) {
     text-align: right;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
   }
 
@@ -518,7 +515,7 @@
   .breakdown-table tr:hover td { background: #f9f5ed; }
 
   .breakdown-table .year-label {
-    font-family: 'Playfair Display', serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: 15px;
     font-weight: 600;
     color: var(--ink);
@@ -880,7 +877,7 @@ function App() {
     ? results.pctPos >= 0.75
       ? { cls: 'positive', icon: '↗', head: 'Buying looks favorable.', detail: `Across 1,000 historical scenarios, buying outperformed renting ${(results.pctPos * 100).toFixed(0)}% of the time at your 5-year horizon.` }
       : results.pctPos >= 0.50
-      ? { cls: 'neutral', icon: '→', head: 'It's a close call.', detail: `Buying outperforms in ${(results.pctPos * 100).toFixed(0)}% of historical scenarios. Outcome is highly sensitive to which market cycle you enter.` }
+      ? { cls: 'neutral', icon: '→', head: "It's a close call.", detail: `Buying outperforms in ${(results.pctPos * 100).toFixed(0)}% of historical scenarios. Outcome is highly sensitive to which market cycle you enter.` }
       : { cls: 'negative', icon: '↙', head: 'Renting may be smarter.', detail: `Only ${(results.pctPos * 100).toFixed(0)}% of historical scenarios favor buying at these inputs. Consider waiting or adjusting your horizon.` }
     : null;
 
@@ -940,7 +937,7 @@ function App() {
             <div className="input-label">Down Payment</div>
             <div className="input-row">
               <span className="currency-prefix">$</span>
-              <span className="num-input" style={{fontFamily:'Playfair Display,serif',fontSize:22,fontWeight:600}}>
+              <span className="num-input" style={{fontFamily:'Georgia,serif',fontSize:22,fontWeight:600}}>
                 {downPayment.toLocaleString('en-US', {maximumFractionDigits:0})}
               </span>
             </div>
@@ -949,7 +946,7 @@ function App() {
             <div className="input-label">Loan Amount</div>
             <div className="input-row">
               <span className="currency-prefix">$</span>
-              <span className="num-input" style={{fontFamily:'Playfair Display,serif',fontSize:22,fontWeight:600}}>
+              <span className="num-input" style={{fontFamily:'Georgia,serif',fontSize:22,fontWeight:600}}>
                 {loanAmount.toLocaleString('en-US', {maximumFractionDigits:0})}
               </span>
             </div>
@@ -958,7 +955,7 @@ function App() {
             <div className="input-label">Est. Monthly Payment <span className="input-hint">P+I only</span></div>
             <div className="input-row">
               <span className="currency-prefix">$</span>
-              <span className="num-input" style={{fontFamily:'Playfair Display,serif',fontSize:22,fontWeight:600}}>
+              <span className="num-input" style={{fontFamily:'Georgia,serif',fontSize:22,fontWeight:600}}>
                 {monthlyPmt.toLocaleString('en-US', {maximumFractionDigits:0})}
               </span>
             </div>
