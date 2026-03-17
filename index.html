@@ -747,8 +747,17 @@ function buildHistogram(data, bins = 30) {
   return { counts, min, max, width };
 }
 
+// ─── ROUNDING HELPER ───
+// Infers decimal places from the step size and returns a cleanly rounded value.
+function round(val, step) {
+  if (!step || step >= 1) return Math.round(val);
+  const decimals = Math.round(-Math.log10(step));
+  return parseFloat(val.toFixed(decimals));
+}
+
 // ─── INPUT FIELD ───
 function Field({ label, hint, prefix, suffix, value, onChange, min, max, step, showRange }) {
+  const display = round(value, step);
   return (
     <div className="input-cell">
       <div className="input-label">
@@ -760,7 +769,7 @@ function Field({ label, hint, prefix, suffix, value, onChange, min, max, step, s
         <input
           className="num-input"
           type="number"
-          value={value}
+          value={display}
           min={min} max={max} step={step || 1}
           onChange={e => onChange(parseFloat(e.target.value) || 0)}
         />
@@ -769,7 +778,7 @@ function Field({ label, hint, prefix, suffix, value, onChange, min, max, step, s
       {showRange && (
         <div className="range-wrapper">
           <input type="range" min={min} max={max} step={step || 1}
-            value={value} onChange={e => onChange(parseFloat(e.target.value))} />
+            value={display} onChange={e => onChange(parseFloat(e.target.value))} />
         </div>
       )}
     </div>
