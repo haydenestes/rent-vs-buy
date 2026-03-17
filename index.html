@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Own or Rent — Home Decision Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1410;
+    --ink-soft: #4a3f35;
+    --ink-muted: #8a7b6e;
+    --parchment: #f5f0e8;
+    --parchment-dark: #ede5d5;
+    --parchment-darker: #e0d5c0;
+    --gold: #c8922a;
+    --gold-light: #e8b84b;
+    --gold-pale: #f7ecd4;
+    --green: #2d6a4f;
+    --green-light: #52b788;
+    --green-pale: #d8f3dc;
+    --red: #8b2635;
+    --red-pale: #fce4e7;
+    --border: rgba(26,20,16,0.12);
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--parchment);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRAIN TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.6;
+  }
+
+  .app {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 48px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .header-left {}
+
+  .header-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--ink);
+  }
+
+  .header-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .header-sub {
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--ink-muted);
+    line-height: 1.6;
+    max-width: 400px;
+  }
+
+  .header-badge {
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* INPUT GRID */
+  .input-section {
+    margin-bottom: 48px;
+  }
+
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .input-cell {
+    background: var(--parchment);
+    padding: 20px 22px;
+    transition: background 0.15s;
+  }
+  .input-cell:hover { background: #f9f5ed; }
+  .input-cell.full { grid-column: 1 / -1; }
+
+  .input-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .input-hint {
+    font-size: 10px;
+    color: var(--ink-muted);
+    font-weight: 400;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .currency-prefix {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--ink-muted);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  input[type="number"], input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .num-input {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    border: none;
+    background: transparent;
+    width: 100%;
+    outline: none;
+    padding: 0;
+    line-height: 1;
+  }
+  .num-input::-webkit-inner-spin-button,
+  .num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .pct-suffix {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--ink-muted);
+    flex-shrink: 0;
+  }
+
+  .range-wrapper {
+    margin-top: 10px;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 3px;
+    background: var(--parchment-darker);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    border: 2px solid var(--parchment);
+    box-shadow: 0 0 0 1px var(--gold);
+  }
+
+  /* RUN BUTTON */
+  .run-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  .run-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--parchment);
+    border: none;
+    padding: 16px 36px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.15s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .run-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+    z-index: 0;
+  }
+  .run-btn:hover::after { transform: scaleX(1); }
+  .run-btn span { position: relative; z-index: 1; }
+  .run-btn:active { transform: scale(0.98); }
+  .run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .run-note {
+    font-size: 12px;
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+
+  /* RESULTS */
+  .results-section { animation: fadeUp 0.4s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* VERDICT BANNER */
+  .verdict {
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    border: 1px solid transparent;
+  }
+  .verdict.positive {
+    background: var(--green-pale);
+    border-color: rgba(45,106,79,0.2);
+  }
+  .verdict.neutral {
+    background: var(--gold-pale);
+    border-color: rgba(200,146,42,0.2);
+  }
+  .verdict.negative {
+    background: var(--red-pale);
+    border-color: rgba(139,38,53,0.2);
+  }
+
+  .verdict-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .verdict-text {}
+  .verdict-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  .verdict-detail {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  /* STAT CARDS */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--parchment);
+    padding: 24px;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .stat-value.positive { color: var(--green); }
+  .stat-value.negative { color: var(--red); }
+  .stat-value.gold { color: var(--gold); }
+
+  .stat-sub {
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 6px;
+  }
+
+  /* HISTOGRAM */
+  .chart-container {
+    background: var(--parchment);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 28px 20px;
+    margin-bottom: 32px;
+  }
+
+  .chart-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .chart-subtitle {
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin-bottom: 24px;
+  }
+
+  .histogram-wrap {
+    position: relative;
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .hist-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    position: relative;
+  }
+
+  .hist-bar {
+    width: 100%;
+    border-radius: 2px 2px 0 0;
+    transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: default;
+    position: relative;
+  }
+
+  .hist-bar:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    padding: 4px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+    z-index: 10;
+  }
+
+  .hist-axis {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding: 0 0;
+  }
+
+  .hist-axis-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--ink-muted);
+  }
+
+  /* BREAKDOWN TABLE */
+  .breakdown {
+    background: var(--parchment);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .breakdown-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .breakdown-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .breakdown-sub {
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin-top: 2px;
+  }
+
+  .breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .breakdown-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    padding: 12px 24px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--parchment-dark);
+  }
+
+  .breakdown-table th:not(:first-child) { text-align: right; }
+
+  .breakdown-table td {
+    padding: 14px 24px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-soft);
+  }
+
+  .breakdown-table td:not(:first-child) {
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+  }
+
+  .breakdown-table tr:last-child td { border-bottom: none; }
+  .breakdown-table tr:hover td { background: #f9f5ed; }
+
+  .breakdown-table .year-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .irr-val { color: var(--green); font-weight: 500; }
+
+  /* FOOTNOTE */
+  .footnote {
+    font-size: 11px;
+    color: var(--ink-muted);
+    line-height: 1.7;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--parchment-dark);
+  }
+
+  .footnote strong { color: var(--ink-soft); font-weight: 500; }
+
+  /* LOADING */
+  .loading-bar {
+    height: 2px;
+    background: var(--parchment-darker);
+    border-radius: 1px;
+    overflow: hidden;
+    margin: 12px 0;
+  }
+  .loading-bar-inner {
+    height: 100%;
+    background: var(--gold);
+    animation: loadBar 1.2s ease infinite;
+  }
+  @keyframes loadBar {
+    0% { width: 0%; margin-left: 0; }
+    50% { width: 70%; margin-left: 15%; }
+    100% { width: 0%; margin-left: 100%; }
+  }
+
+  @media (max-width: 600px) {
+    .input-grid { grid-template-columns: 1fr; }
+    .stat-row { grid-template-columns: 1fr; }
+    .header { flex-direction: column; align-items: flex-start; }
+    .header-badge { align-self: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useCallback, useRef } = React;
+
+// ─── FRED 5-YEAR % ANNUAL CHANGE DATA (49 periods, 1976–2024) ───
+const FRED_DATA = [
+  { housing: 10.75, rent: 6.49 },
+  { housing: 10.87, rent: 7.33 },
+  { housing: 8.83,  rent: 7.80 },
+  { housing: 7.54,  rent: 7.89 },
+  { housing: 5.49,  rent: 7.37 },
+  { housing: 4.55,  rent: 6.90 },
+  { housing: 4.76,  rent: 6.35 },
+  { housing: 6.06,  rent: 5.69 },
+  { housing: 5.50,  rent: 5.13 },
+  { housing: 5.68,  rent: 4.93 },
+  { housing: 5.76,  rent: 4.57 },
+  { housing: 4.79,  rent: 4.10 },
+  { housing: 3.94,  rent: 3.69 },
+  { housing: 3.27,  rent: 3.40 },
+  { housing: 2.88,  rent: 3.12 },
+  { housing: 2.18,  rent: 2.83 },
+  { housing: 2.91,  rent: 2.53 },
+  { housing: 2.75,  rent: 2.49 },
+  { housing: 3.43,  rent: 2.63 },
+  { housing: 3.70,  rent: 2.87 },
+  { housing: 4.57,  rent: 3.02 },
+  { housing: 5.06,  rent: 3.30 },
+  { housing: 5.83,  rent: 3.68 },
+  { housing: 6.11,  rent: 3.70 },
+  { housing: 6.67,  rent: 3.51 },
+  { housing: 7.72,  rent: 3.44 },
+  { housing: 8.27,  rent: 3.26 },
+  { housing: 7.70,  rent: 3.22 },
+  { housing: 5.88,  rent: 3.36 },
+  { housing: 3.15,  rent: 3.55 },
+  { housing: -0.46, rent: 3.04 },
+  { housing: -3.09, rent: 2.63 },
+  { housing: -4.03, rent: 2.23 },
+  { housing: -3.18, rent: 1.99 },
+  { housing: -1.13, rent: 1.89 },
+  { housing: 1.38,  rent: 2.48 },
+  { housing: 3.06,  rent: 3.03 },
+  { housing: 4.45,  rent: 3.32 },
+  { housing: 5.26,  rent: 3.53 },
+  { housing: 5.24,  rent: 3.64 },
+  { housing: 5.18,  rent: 3.71 },
+  { housing: 5.72,  rent: 3.38 },
+  { housing: 8.45,  rent: 3.35 },
+  { housing: 8.84,  rent: 4.29 },
+  { housing: 9.21,  rent: 4.82 },
+  { housing: 8.13,  rent: 4.05 },
+  { housing: 6.57,  rent: 3.63 },
+  { housing: 2.83,  rent: 2.87 },
+  { housing: 1.25,  rent: 1.19 },
+];
+
+// ─── FINANCE MATH ───
+function calcIRR(cashflows, maxIter = 1000, tol = 1e-6) {
+  let rate = 0.1;
+  for (let i = 0; i < maxIter; i++) {
+    let npv = 0, dnpv = 0;
+    for (let t = 0; t < cashflows.length; t++) {
+      npv  += cashflows[t] / Math.pow(1 + rate, t);
+      dnpv -= t * cashflows[t] / Math.pow(1 + rate, t + 1);
+    }
+    if (Math.abs(dnpv) < 1e-10) break;
+    const newRate = rate - npv / dnpv;
+    if (Math.abs(newRate - rate) < tol) return newRate;
+    rate = newRate;
+  }
+  return rate;
+}
+
+function pmt(rate, nper, pv) {
+  if (rate === 0) return pv / nper;
+  return rate * pv / (1 - Math.pow(1 + rate, -nper));
+}
+
+function cumipmt(rate, nper, pv, start, end) {
+  let total = 0;
+  let balance = pv;
+  const payment = pmt(rate, nper, pv);
+  for (let p = 1; p <= end; p++) {
+    const interest = balance * rate;
+    const principal = payment - interest;
+    if (p >= start) total += interest;
+    balance -= principal;
+  }
+  return total;
+}
+
+function cumprinc(rate, nper, pv, start, end) {
+  let total = 0;
+  let balance = pv;
+  const payment = pmt(rate, nper, pv);
+  for (let p = 1; p <= end; p++) {
+    const interest = balance * rate;
+    const principal = payment - interest;
+    if (p >= start) total += principal;
+    balance -= principal;
+  }
+  return total;
+}
+
+function runScenario(params, fredRow) {
+  const {
+    purchasePrice, annualRent, taxBracket, propertyTaxRate,
+    loanPct, loanLengthYrs, interestRate, salesExpensePct,
+    annualInsurance, annualMaint, annualExpGrowth, exclusion
+  } = params;
+
+  const houseGrowth = fredRow.housing / 100;
+  const rentGrowth  = fredRow.rent / 100;
+
+  const downPayment  = (1 - loanPct) * purchasePrice;
+  const loanAmount   = loanPct * purchasePrice;
+  const monthlyRate  = interestRate / 12;
+  const nper         = loanLengthYrs * 12;
+  const monthlyPmt   = pmt(monthlyRate, nper, loanAmount);
+
+  const rows = [];
+  for (let yr = 1; yr <= 5; yr++) {
+    const propTax    = purchasePrice * propertyTaxRate * Math.pow(1 + houseGrowth, yr - 1);
+    const insurance  = annualInsurance * Math.pow(1 + annualExpGrowth, yr - 1);
+    const maint      = annualMaint * Math.pow(1 + annualExpGrowth, yr - 1);
+    const mortgage   = monthlyPmt * 12;
+    const outflow    = propTax + insurance + maint + mortgage;
+
+    const interest   = cumipmt(monthlyRate, nper, loanAmount, (yr - 1) * 12 + 1, yr * 12);
+    const totalDeductions = propTax + interest;
+    const taxSavings = taxBracket * totalDeductions;
+
+    const rent       = annualRent * Math.pow(1 + rentGrowth, yr - 1);
+    const afterTaxCF = -outflow + taxSavings + rent;
+
+    const propValue  = purchasePrice * Math.pow(1 + houseGrowth, yr);
+    const sellExp    = salesExpensePct * propValue;
+    const mortBalance= loanAmount - cumprinc(monthlyRate, nper, loanAmount, 1, yr * 12);
+    const btSaleCF   = propValue - sellExp - mortBalance;
+    const gain       = propValue - sellExp - purchasePrice;
+    const tax        = gain > exclusion ? taxBracket * (gain - exclusion) : 0;
+    const atSaleCF   = btSaleCF - tax;
+
+    rows.push({ yr, afterTaxCF, atSaleCF, propValue, propTax, insurance, maint, mortgage, taxSavings, rent });
+  }
+
+  // IRRs for each year
+  const irrs = rows.map((row, i) => {
+    const cfs = [-downPayment];
+    for (let j = 0; j <= i; j++) {
+      if (j < i) cfs.push(rows[j].afterTaxCF);
+      else cfs.push(rows[j].afterTaxCF + rows[j].atSaleCF);
+    }
+    return calcIRR(cfs);
+  });
+
+  return { irrs, rows, downPayment, houseGrowth, rentGrowth };
+}
+
+function runMonteCarlo(params, n = 1000) {
+  const results = [];
+  for (let i = 0; i < n; i++) {
+    const fredRow = FRED_DATA[Math.floor(Math.random() * FRED_DATA.length)];
+    const { irrs } = runScenario(params, fredRow);
+    results.push(irrs[4]); // year 5 IRR
+  }
+  return results;
+}
+
+function buildHistogram(data, bins = 30) {
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const width = (max - min) / bins;
+  const counts = Array(bins).fill(0);
+  data.forEach(v => {
+    const b = Math.min(Math.floor((v - min) / width), bins - 1);
+    counts[b]++;
+  });
+  return { counts, min, max, width };
+}
+
+// ─── INPUT FIELD ───
+function Field({ label, hint, prefix, suffix, value, onChange, min, max, step, showRange }) {
+  return (
+    <div className="input-cell">
+      <div className="input-label">
+        <span>{label}</span>
+        {hint && <span className="input-hint">{hint}</span>}
+      </div>
+      <div className="input-row">
+        {prefix && <span className="currency-prefix">{prefix}</span>}
+        <input
+          className="num-input"
+          type="number"
+          value={value}
+          min={min} max={max} step={step || 1}
+          onChange={e => onChange(parseFloat(e.target.value) || 0)}
+        />
+        {suffix && <span className="pct-suffix">{suffix}</span>}
+      </div>
+      {showRange && (
+        <div className="range-wrapper">
+          <input type="range" min={min} max={max} step={step || 1}
+            value={value} onChange={e => onChange(parseFloat(e.target.value))} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── HISTOGRAM ───
+function Histogram({ data, mean }) {
+  const { counts, min, max, width } = buildHistogram(data, 28);
+  const maxCount = Math.max(...counts);
+  const pctPositive = (data.filter(d => d > 0).length / data.length * 100).toFixed(0);
+
+  return (
+    <div className="chart-container">
+      <div className="chart-title">IRR Distribution — 1,000 Scenarios</div>
+      <div className="chart-subtitle">
+        Year 5 internal rate of return across historical market cycles · {pctPositive}% of scenarios show positive return
+      </div>
+      <div className="histogram-wrap">
+        {counts.map((count, i) => {
+          const binStart = min + i * width;
+          const binEnd = binStart + width;
+          const isNeg = binEnd <= 0;
+          const isMean = binStart <= mean && mean < binEnd;
+          const pct = count / maxCount * 100;
+          const color = isNeg
+            ? 'var(--red)'
+            : isMean
+            ? 'var(--gold)'
+            : 'var(--green)';
+          return (
+            <div key={i} className="hist-bar-wrap">
+              <div
+                className="hist-bar"
+                style={{ height: `${pct}%`, background: color, opacity: 0.75 }}
+                data-tip={`${(binStart * 100).toFixed(1)}% – ${(binEnd * 100).toFixed(1)}%: ${count} scenarios`}
+              />
+            </div>
+          );
+        })}
+      </div>
+      <div className="hist-axis">
+        <span className="hist-axis-label">{(min * 100).toFixed(0)}% IRR</span>
+        <span className="hist-axis-label" style={{color: 'var(--gold)'}}>▲ mean {(mean * 100).toFixed(1)}%</span>
+        <span className="hist-axis-label">{(max * 100).toFixed(0)}% IRR</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ───
+function App() {
+  const [params, setParams] = useState({
+    purchasePrice: 800000,
+    annualRent: 36000,
+    taxBracket: 0.28,
+    propertyTaxRate: 0.015,
+    loanPct: 0.80,
+    loanLengthYrs: 30,
+    interestRate: 0.07,
+    salesExpensePct: 0.07,
+    annualInsurance: 1200,
+    annualMaint: 2400,
+    annualExpGrowth: 0.02,
+    exclusion: 250000,
+  });
+
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const set = (key) => (val) => setParams(p => ({ ...p, [key]: val }));
+
+  const handleRun = useCallback(() => {
+    setLoading(true);
+    setResults(null);
+    setTimeout(() => {
+      const mcData = runMonteCarlo(params);
+      const mean = mcData.reduce((a, b) => a + b, 0) / mcData.length;
+      const minV = Math.min(...mcData);
+      const maxV = Math.max(...mcData);
+      const pctPos = mcData.filter(d => d > 0).length / mcData.length;
+
+      // single scenario for year-by-year table (use mean-ish FRED row)
+      const medianFred = FRED_DATA[24]; // roughly middle
+      const single = runScenario(params, medianFred);
+
+      setResults({ mcData, mean, minV, maxV, pctPos, single });
+      setLoading(false);
+    }, 80);
+  }, [params]);
+
+  const downPayment = (1 - params.loanPct) * params.purchasePrice;
+  const loanAmount  = params.loanPct * params.purchasePrice;
+  const monthlyRate = params.interestRate / 12;
+  const nper        = params.loanLengthYrs * 12;
+  const monthlyPmt  = pmt(monthlyRate, nper, loanAmount);
+
+  const fmt = (n) => n < 0
+    ? `(${Math.abs(n).toLocaleString('en-US', {maximumFractionDigits:0})})`
+    : n.toLocaleString('en-US', {maximumFractionDigits:0});
+
+  const fmtPct = (n) => `${(n * 100).toFixed(1)}%`;
+
+  const verdictText = results
+    ? results.pctPos >= 0.75
+      ? { cls: 'positive', icon: '↗', head: 'Buying looks favorable.', detail: `Across 1,000 historical scenarios, buying outperformed renting ${(results.pctPos * 100).toFixed(0)}% of the time at your 5-year horizon.` }
+      : results.pctPos >= 0.50
+      ? { cls: 'neutral', icon: '→', head: 'It's a close call.', detail: `Buying outperforms in ${(results.pctPos * 100).toFixed(0)}% of historical scenarios. Outcome is highly sensitive to which market cycle you enter.` }
+      : { cls: 'negative', icon: '↙', head: 'Renting may be smarter.', detail: `Only ${(results.pctPos * 100).toFixed(0)}% of historical scenarios favor buying at these inputs. Consider waiting or adjusting your horizon.` }
+    : null;
+
+  return (
+    <div className="app">
+      <header className="header">
+        <div className="header-left">
+          <div className="header-eyebrow">Monte Carlo Home Decision Simulator</div>
+          <h1 className="header-title">Own or <em>Rent?</em></h1>
+          <p className="header-sub">
+            1,000 simulated scenarios using 50 years of Federal Reserve housing data.
+            Enter your numbers, run the simulation.
+          </p>
+        </div>
+        <div className="header-badge">FRED Data · 1976–2024</div>
+      </header>
+
+      {/* INPUTS */}
+      <div className="input-section">
+        <div className="section-label">Your Situation</div>
+        <div className="input-grid">
+          <Field label="Purchase Price" prefix="$"
+            value={params.purchasePrice} onChange={set('purchasePrice')}
+            min={100000} max={5000000} step={10000} showRange />
+          <Field label="Annual Rent (current)" prefix="$"
+            hint="What you pay now" value={params.annualRent} onChange={set('annualRent')}
+            min={6000} max={200000} step={1000} showRange />
+          <Field label="Down Payment %" suffix="%"
+            hint={`$${downPayment.toLocaleString('en-US', {maximumFractionDigits:0})}`}
+            value={params.loanPct * 100 - (params.loanPct * 100 - (100 - params.loanPct * 100))}
+            onChange={(v) => set('loanPct')(1 - v / 100)}
+            min={3} max={50} step={1} showRange />
+          <Field label="Interest Rate" suffix="%"
+            value={params.interestRate * 100} onChange={(v) => set('interestRate')(v / 100)}
+            min={2} max={12} step={0.1} showRange />
+          <Field label="Loan Term (years)"
+            value={params.loanLengthYrs} onChange={set('loanLengthYrs')}
+            min={10} max={30} step={5} showRange />
+          <Field label="Tax Bracket" suffix="%"
+            value={params.taxBracket * 100} onChange={(v) => set('taxBracket')(v / 100)}
+            min={10} max={37} step={1} showRange />
+          <Field label="Property Tax Rate" suffix="%"
+            value={params.propertyTaxRate * 100} onChange={(v) => set('propertyTaxRate')(v / 100)}
+            min={0.3} max={3} step={0.05} showRange />
+          <Field label="Annual Sales Expense %" suffix="%"
+            hint="Agent fees, closing costs" value={params.salesExpensePct * 100}
+            onChange={(v) => set('salesExpensePct')(v / 100)}
+            min={3} max={10} step={0.5} showRange />
+        </div>
+      </div>
+
+      {/* DERIVED */}
+      <div className="input-section">
+        <div className="section-label">Calculated Inputs</div>
+        <div className="input-grid">
+          <div className="input-cell">
+            <div className="input-label">Down Payment</div>
+            <div className="input-row">
+              <span className="currency-prefix">$</span>
+              <span className="num-input" style={{fontFamily:'Playfair Display,serif',fontSize:22,fontWeight:600}}>
+                {downPayment.toLocaleString('en-US', {maximumFractionDigits:0})}
+              </span>
+            </div>
+          </div>
+          <div className="input-cell">
+            <div className="input-label">Loan Amount</div>
+            <div className="input-row">
+              <span className="currency-prefix">$</span>
+              <span className="num-input" style={{fontFamily:'Playfair Display,serif',fontSize:22,fontWeight:600}}>
+                {loanAmount.toLocaleString('en-US', {maximumFractionDigits:0})}
+              </span>
+            </div>
+          </div>
+          <div className="input-cell">
+            <div className="input-label">Est. Monthly Payment <span className="input-hint">P+I only</span></div>
+            <div className="input-row">
+              <span className="currency-prefix">$</span>
+              <span className="num-input" style={{fontFamily:'Playfair Display,serif',fontSize:22,fontWeight:600}}>
+                {monthlyPmt.toLocaleString('en-US', {maximumFractionDigits:0})}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* RUN */}
+      <div className="run-section">
+        <button className="run-btn" onClick={handleRun} disabled={loading}>
+          <span>{loading ? 'Running…' : 'Run 1,000 Scenarios'}</span>
+        </button>
+        <div className="run-note">
+          Draws randomly from 49 historical FRED periods.<br />
+          Each run produces a fresh distribution.
+        </div>
+      </div>
+
+      {loading && (
+        <div style={{marginBottom: 32}}>
+          <div className="loading-bar"><div className="loading-bar-inner" /></div>
+          <div style={{fontSize:11, color:'var(--ink-muted)'}}>Simulating 1,000 market cycles…</div>
+        </div>
+      )}
+
+      {/* RESULTS */}
+      {results && (
+        <div className="results-section">
+          <div className="section-label">Simulation Results</div>
+
+          <div className={`verdict ${verdictText.cls}`}>
+            <div className="verdict-icon">{verdictText.icon}</div>
+            <div className="verdict-text">
+              <div className="verdict-headline">{verdictText.head}</div>
+              <div className="verdict-detail">{verdictText.detail}</div>
+            </div>
+          </div>
+
+          <div className="stat-row">
+            <div className="stat-card">
+              <div className="stat-label">Mean IRR (Year 5)</div>
+              <div className={`stat-value ${results.mean > 0 ? 'positive' : 'negative'}`}>
+                {fmtPct(results.mean)}
+              </div>
+              <div className="stat-sub">average across all scenarios</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Best Case</div>
+              <div className="stat-value positive">{fmtPct(results.maxV)}</div>
+              <div className="stat-sub">highest observed IRR</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Worst Case</div>
+              <div className={`stat-value ${results.minV > 0 ? 'positive' : 'negative'}`}>
+                {fmtPct(results.minV)}
+              </div>
+              <div className="stat-sub">lowest observed IRR</div>
+            </div>
+          </div>
+
+          <Histogram data={results.mcData} mean={results.mean} />
+
+          {/* YEAR BY YEAR */}
+          <div className="breakdown">
+            <div className="breakdown-header">
+              <div className="breakdown-title">Year-by-Year Breakdown</div>
+              <div className="breakdown-sub">Median market scenario (FRED period 25) · After-tax cash flows</div>
+            </div>
+            <table className="breakdown-table">
+              <thead>
+                <tr>
+                  <th>Year</th>
+                  <th>Property Value</th>
+                  <th>Annual Net CF</th>
+                  <th>Rent Saved</th>
+                  <th>Tax Savings</th>
+                  <th>IRR if Sold</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.single.rows.map((row, i) => (
+                  <tr key={i}>
+                    <td><span className="year-label">Yr {row.yr}</span></td>
+                    <td>${row.propValue.toLocaleString('en-US', {maximumFractionDigits:0})}</td>
+                    <td style={{color: row.afterTaxCF > 0 ? 'var(--green)' : 'var(--ink-soft)'}}>
+                      ${fmt(row.afterTaxCF)}
+                    </td>
+                    <td>${row.rent.toLocaleString('en-US', {maximumFractionDigits:0})}</td>
+                    <td>${row.taxSavings.toLocaleString('en-US', {maximumFractionDigits:0})}</td>
+                    <td className="irr-val">{fmtPct(results.single.irrs[i])}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="footnote">
+            <strong>Methodology:</strong> Each scenario samples one of 49 five-year average growth rates from the Federal Reserve Economic Data (FRED) for housing prices and rent (1976–2024). Cash flows account for mortgage payments, property tax, insurance, maintenance, tax deductions (interest + property tax), and the opportunity cost of the down payment. IRR is calculated at year 5 assuming sale at that year's estimated market value, net of selling expenses and capital gains tax (above the $250k exclusion). <strong>This is a decision-support tool, not financial advice.</strong>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
